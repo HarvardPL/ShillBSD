@@ -557,6 +557,10 @@ typedef int	(*mpo_vnode_check_chroot_t)(struct ucred *cred,
 typedef int	(*mpo_vnode_check_create_t)(struct ucred *cred,
 		    struct vnode *dvp, struct label *dvplabel,
 		    struct componentname *cnp, struct vattr *vap);
+typedef void    (*mpo_vnode_post_create_t)(struct ucred *cred,
+		    struct vnode *dvp, struct label *dvplabel,
+		    struct vnode *vp, struct label *vplabel,
+		    struct componentname *cnp, struct vattr *vap);
 typedef int	(*mpo_vnode_check_deleteacl_t)(struct ucred *cred,
 		    struct vnode *vp, struct label *vplabel,
 		    acl_type_t type);
@@ -582,6 +586,10 @@ typedef int	(*mpo_vnode_check_listextattr_t)(struct ucred *cred,
 typedef int	(*mpo_vnode_check_lookup_t)(struct ucred *cred,
 		    struct vnode *dvp, struct label *dvplabel,
 		    struct componentname *cnp);
+typedef void	(*mpo_vnode_post_lookup_t)(struct ucred *cred,
+		    struct vnode *dvp, struct label *dvplabel,
+		    struct componentname *cnp, struct vnode *vp,
+		    struct label *vplabel);
 typedef int	(*mpo_vnode_check_mmap_t)(struct ucred *cred,
 		    struct vnode *vp, struct label *label, int prot,
 		    int flags);
@@ -919,6 +927,7 @@ struct mac_policy_ops {
 	mpo_vnode_check_chdir_t			mpo_vnode_check_chdir;
 	mpo_vnode_check_chroot_t		mpo_vnode_check_chroot;
 	mpo_vnode_check_create_t		mpo_vnode_check_create;
+	mpo_vnode_post_create_t			mpo_vnode_post_create;
 	mpo_vnode_check_deleteacl_t		mpo_vnode_check_deleteacl;
 	mpo_vnode_check_deleteextattr_t		mpo_vnode_check_deleteextattr;
 	mpo_vnode_check_exec_t			mpo_vnode_check_exec;
@@ -927,6 +936,7 @@ struct mac_policy_ops {
 	mpo_vnode_check_link_t			mpo_vnode_check_link;
 	mpo_vnode_check_listextattr_t		mpo_vnode_check_listextattr;
 	mpo_vnode_check_lookup_t		mpo_vnode_check_lookup;
+	mpo_vnode_post_lookup_t			mpo_vnode_post_lookup;
 	mpo_vnode_check_mmap_t			mpo_vnode_check_mmap;
 	mpo_vnode_check_mmap_downgrade_t	mpo_vnode_check_mmap_downgrade;
 	mpo_vnode_check_mprotect_t		mpo_vnode_check_mprotect;

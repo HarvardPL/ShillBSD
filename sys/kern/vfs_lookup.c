@@ -784,6 +784,14 @@ unionlookup:
 		goto success;
 	} else
 		cnp->cn_lkflags = lkflags_save;
+
+#ifdef MAC
+	if ((cnp->cn_flags & NOMACCHECK) == 0) {
+	  mac_vnode_post_lookup(cnp->cn_thread->td_ucred, ndp->ni_dvp,
+				      cnp, ndp->ni_vp);
+	}
+#endif
+
 #ifdef NAMEI_DIAGNOSTIC
 	printf("found\n");
 #endif
@@ -809,7 +817,6 @@ unionlookup:
 	       (cnp->cn_flags & NOCROSSMOUNT) == 0) {
 		if (vfs_busy(mp, 0))
 			continue;
-		vput(dp);
 		VFS_UNLOCK_GIANT(vfslocked);
 		vfslocked = VFS_LOCK_GIANT(mp);
 		if (dp != ndp->ni_dvp)
@@ -829,6 +836,12 @@ unionlookup:
 			dpunlocked = 1;
 			goto bad2;
 		}
+#ifdef MAC
+		if ((cnp->cn_flags & NOMACCHECK) == 0) {
+		  mac_vnode_post_lookup(cnp->cn_thread->td_ucred, dp, cnp, tdp);
+		}
+#endif
+		vput(dp);
 		ndp->ni_vp = dp = tdp;
 	}
 

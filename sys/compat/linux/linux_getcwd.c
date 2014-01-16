@@ -166,6 +166,11 @@ linux_getcwd_scandir(lvpp, uvpp, bpp, bufp, td)
 	if (error == 0)
 #endif
 		error = VOP_LOOKUP(lvp, uvpp, &cn);
+#ifdef MAC
+	if (!error) {
+	  mac_vnode_post_lookup(td->td_ucred, lvp, &cn, *uvpp);
+	}
+#endif /* MAC */
 	if (error) {
 		vput(lvp);
 		*lvpp = NULL;

@@ -435,6 +435,21 @@ mac_vnode_check_create(struct ucred *cred, struct vnode *dvp,
 	return (error);
 }
 
+void
+mac_vnode_post_create(struct ucred *cred, struct vnode *dvp, struct vnode *vp,
+    struct componentname *cnp, struct vattr *vap)
+{
+	ASSERT_VOP_LOCKED(dvp, "mac_vnode_post_create");
+	ASSERT_VOP_LOCKED(vp, "mac_vnode_post_create");
+
+	MAC_POLICY_PERFORM(vnode_post_create, cred,
+			   dvp, dvp->v_label,
+			   vp, vp->v_label,
+			   cnp, vap);
+
+	return;
+}
+
 MAC_CHECK_PROBE_DEFINE3(vnode_check_deleteacl, "struct ucred *",
     "struct vnode *", "acl_type_t");
 
@@ -577,6 +592,19 @@ mac_vnode_check_lookup(struct ucred *cred, struct vnode *dvp,
 	MAC_CHECK_PROBE3(vnode_check_lookup, error, cred, dvp, cnp);
 
 	return (error);
+}
+
+void
+mac_vnode_post_lookup(struct ucred *cred, struct vnode *dvp,
+		      struct componentname *cnp, struct vnode *vp)
+{
+	ASSERT_VOP_LOCKED(dvp, "mac_vnode_post_lookup");
+	ASSERT_VOP_LOCKED(vp, "mac_vnode_post_lookup");
+
+	MAC_POLICY_PERFORM(vnode_post_lookup, cred, dvp, dvp->v_label, cnp,
+			   vp, vp->v_label);
+
+	return;
 }
 
 MAC_CHECK_PROBE_DEFINE4(vnode_check_mmap, "struct ucred *", "struct vnode *",
@@ -1049,17 +1077,6 @@ vn_setlabel(struct vnode *vp, struct label *intlabel, struct ucred *cred)
 	 * as part of VOP_SETLABEL()?
 	 */
 	error = mac_vnode_check_relabel(cred, vp, intlabel);
-	if (error)
-		return (error);
-
-	/*
-	 * VADMIN provides the opportunity for the filesystem to make
-	 * decisions about who is and is not able to modify labels and
-	 * protections on files.  This might not be right.  We can't assume
-	 * VOP_SETLABEL() will do it, because we might implement that as part
-	 * of vop_stdsetlabel_ea().
-	 */
-	error = VOP_ACCESS(vp, VADMIN, cred, curthread);
 	if (error)
 		return (error);
 

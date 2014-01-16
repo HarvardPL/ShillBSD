@@ -1414,8 +1414,14 @@ restart:
 		else {
 			error = VOP_MKNOD(nd.ni_dvp, &nd.ni_vp,
 						&nd.ni_cnd, &vattr);
-			if (error == 0)
+			if (error == 0) {
 				vput(nd.ni_vp);
+#ifdef MAC
+				mac_vnode_post_create(td->td_ucred,
+						      nd.ni_dvp, nd.ni_vp,
+						      &nd.ni_cnd, &vattr);
+#endif
+			}
 		}
 	}
 	NDFREE(&nd, NDF_ONLY_PNBUF);
@@ -1514,8 +1520,14 @@ restart:
 		goto out;
 #endif
 	error = VOP_MKNOD(nd.ni_dvp, &nd.ni_vp, &nd.ni_cnd, &vattr);
-	if (error == 0)
+	if (error == 0) {
 		vput(nd.ni_vp);
+#ifdef MAC
+		mac_vnode_post_create(td->td_ucred,
+				      nd.ni_dvp, nd.ni_vp,
+				      &nd.ni_cnd, &vattr);
+#endif
+	}
 #ifdef MAC
 out:
 #endif
@@ -1776,8 +1788,14 @@ restart:
 		goto out2;
 #endif
 	error = VOP_SYMLINK(nd.ni_dvp, &nd.ni_vp, &nd.ni_cnd, &vattr, syspath);
-	if (error == 0)
+	if (error == 0) {
 		vput(nd.ni_vp);
+#ifdef MAC
+		mac_vnode_post_create(td->td_ucred,
+				      nd.ni_dvp, nd.ni_vp,
+				      &nd.ni_cnd, &vattr);
+#endif
+	}
 #ifdef MAC
 out2:
 #endif
@@ -3853,6 +3871,13 @@ restart:
 		goto out;
 #endif
 	error = VOP_MKDIR(nd.ni_dvp, &nd.ni_vp, &nd.ni_cnd, &vattr);
+#ifdef MAC
+	if (error == 0) {
+		mac_vnode_post_create(td->td_ucred,
+				      nd.ni_dvp, nd.ni_vp,
+				      &nd.ni_cnd, &vattr);
+	}
+#endif
 #ifdef MAC
 out:
 #endif

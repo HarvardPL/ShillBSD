@@ -538,6 +538,9 @@ restart:
 		vn_finished_write(mp);
 		goto error;
 	}
+#ifdef MAC
+	mac_vnode_post_create(td->td_ucred, nd.ni_dvp, nd.ni_vp, &nd.ni_cnd, &vattr);
+#endif
 	vp = nd.ni_vp;
 	ASSERT_VOP_ELOCKED(vp, "uipc_bind");
 	soun = (struct sockaddr_un *)sodupsockaddr(nam, M_WAITOK);
